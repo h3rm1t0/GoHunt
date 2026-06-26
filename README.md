@@ -1,4 +1,14 @@
-# GoHunt
+
+⠀⠀⠀⠀⠀⠀⡄⠈⢰⡯⢿⢈⠀⠀⠀⠀⠀⠀⠀⠀ ____       _   _             _
+⠀⠀⠀⠀⠀⠀⢧⢢⣟⣿⣏⠳⡡⡃⠀⠀⠀⠀⠀⠀/⣿⣿⣿⣿| ___ |⣿| |⣿|_   _ _ __ |⣿|_
+ ⠀⠀⠀⠀⢀⣀⢖⠈⡽⣟⠑⠶⣀⠀⠀⠀⠀⠀|⣿|  _ /⣿⣿⣿\|⣿|_|⣿|⣿| |⣿|⣿'⣿⣿\|⣿⣿|
+⠀⠀⠀⠀⠀⡏⢈⠐⢳⣿⣿⣦⢸⡀⠓⠀⠀⠀⠀|⣿|_|⣿|⣿(_)⣿|⣿⣿⣿⣿⣿|⣿|_|⣿|⣿| |⣿|⣿|_
+⠀⠀⠀⠀⠀⠁⡞⢌⠘⣻⢻⣿⡿⢹⠀⠀⠀  ⠀\⣿⣿⣿⣿|\⣿⣿⣿/|⣿| |⣿|\⣿⣿⢖⣿|⣿| |⣿|⠢⣿⣿|⠀
+⠀⠀⠀⠀⠀⠀⢣⠀⠑⠒⠛⠉⠀⡼⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠢⠀⠀⠀⡌⠁⠀⠀⠀⠀⠀⠀
+
+
+
 
 O **GoHunt** é uma ferramenta customizada de Segurança Ofensiva desenvolvida em Go, focada em automação de *Bug Bounty*, descoberta de *Information Disclosure* e *Fuzzing* furtivo. 
 Ao contrário de scanners comerciais ruidosos, o GoHunt foi arquitetado para se comportar como um navegador real, conversando com a infraestrutura alvo no ritmo adequado para evitar bloqueios, enquanto busca ativamente por falhas lógicas, painéis expostos e vazamento de credenciais.
