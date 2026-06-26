@@ -5,7 +5,7 @@ Ao contrário de scanners comerciais ruidosos, o GoHunt foi arquitetado para se 
 
 ---
 
-## 🚧 Status do Projeto
+## Status do Projeto
 **Em desenvolvimento ativo (BETA).** O GoHunt é funcional para varreduras de escopos pequenos e médios (incluindo *wildcards*), mas seu motor central (`VulnChecker`) e o banco de dados de assinaturas (`arsenal.json`) estão passando por aprimoramentos e refatorações contínuas de gerenciamento de memória e concorrência.
 
 ---
@@ -34,7 +34,7 @@ A ferramenta foi construída sob a ótica de alta precisão (High Signal / Low N
 
 ---
 
-## ⚠️ Disclaimer Educacional e Ético
+## Disclaimer Educacional e Ético
 
 O GoHunt foi criado **estritamente para uso educacional, pesquisa de segurança cibernética e operações autorizadas** (programas de *Bug Bounty* oficiais, *Red Teaming* contratual e auditorias com consentimento explícito). 
 O desenvolvedor não encoraja, apoia ou assume qualquer responsabilidade pelo uso indevido desta ferramenta em redes, sistemas ou aplicações sem autorização prévia por escrito de seus proprietários. Ao utilizar o GoHunt, você assume total responsabilidade por suas ações e concorda em operar dentro dos limites das leis aplicáveis.
