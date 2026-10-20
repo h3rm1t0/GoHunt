@@ -1,0 +1,79 @@
+{
+  "date": "2026-10-17",
+  "reason": "Conversões legadas não preservam toda a semântica dos templates Nuclei. Não usadas pelo novo catálogo.",
+  "files": [
+    {
+      "name": "arsenal.json",
+      "bytes": 227945,
+      "sha256": "242236975953792fe8e5e48c4685c63c161dcf433813146e98f001b98bcb30bd",
+      "records": 256,
+      "without_product_gate": 7,
+      "without_precise_rules": 256,
+      "unexpanded_placeholders": 91
+    },
+    {
+      "name": "arsenal.json.bak",
+      "bytes": 227945,
+      "sha256": "242236975953792fe8e5e48c4685c63c161dcf433813146e98f001b98bcb30bd"
+    },
+    {
+      "name": "arsenal_v2.json",
+      "bytes": 202294,
+      "sha256": "4947f27347e809f0fd18206e1d6264ea075271d8f7ab977da02395d6a0bb0001",
+      "records": 220,
+      "without_product_gate": 0,
+      "without_precise_rules": 220,
+      "unexpanded_placeholders": 75
+    },
+    {
+      "name": "arsenal_v3.json",
+      "bytes": 7142621,
+      "sha256": "c3b1a008d984d3d92ac77913e479731017ec7c29dd0b1e396ca7d1986ccad4cd",
+      "records": 6063,
+      "without_product_gate": 28,
+      "without_precise_rules": 0,
+      "unexpanded_placeholders": 362
+    },
+    {
+      "name": "arsenal_v4.json",
+      "bytes": 20708293,
+      "sha256": "8ffb5818da1f9884f6884625b54939e75d8f5fb089ce27bbf07b658ce0b64ac2",
+      "records": 17633,
+      "without_product_gate": 102,
+      "without_precise_rules": 0,
+      "unexpanded_placeholders": 945
+    },
+    {
+      "name": "arsenal_v5.json",
+      "bytes": 14741940,
+      "sha256": "33e751144de123bafc14e81eb809930e9605296806d94b4d226132ae7dbe5359",
+      "records": 12088,
+      "without_product_gate": 56,
+      "without_precise_rules": 0,
+      "unexpanded_placeholders": 730
+    },
+    {
+      "name": "arsenal_v6.json",
+      "bytes": 4060700,
+      "sha256": "9d4dae2880c2f49726ef552dc1ffa44f1bc9150d905016148b2ff51464b8976a",
+      "records": 3033,
+      "without_product_gate": 11,
+      "without_precise_rules": 0,
+      "unexpanded_placeholders": 297
+    },
+    {
+      "name": "arsenal_v7.json",
+      "bytes": 3087031,
+      "sha256": "2bc9312458fcdb192817a6a0c4240856dbf8452e2efe12e74ee43f7128eb01a8",
+      "records": 2257,
+      "without_product_gate": 10,
+      "without_precise_rules": 0,
+      "unexpanded_placeholders": 161
+    },
+    {
+      "name": "favhashes.json.bak",
+      "bytes": 18170,
+      "sha256": "adf94df02df769fe55e117f6848bef98b93a41b7797dd753957ef53756fa2acb"
+    }
+  ]
+}
