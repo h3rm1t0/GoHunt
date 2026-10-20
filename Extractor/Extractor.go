@@ -17,8 +17,11 @@ import (
 var tempo string
 
 func telegram(mensagem string) {
-	var telegram_key string = "<INSIRA_SUA_CHAVE_API_DO_TELEGRAM_AQUI>"
-	var chat_id string = "<INSIRA_ID_DO_SEU_CHAT_TELEGRAM_AQUI>"
+	var telegram_key string = os.Getenv("TELEGRAM_BOT_TOKEN")
+	var chat_id string = os.Getenv("TELEGRAM_CHAT_ID")
+	if telegram_key == "" || chat_id == "" {
+		return
+	}
 	ritmo := time.NewTicker(time.Millisecond / time.Duration(2500))
 	defer ritmo.Stop()
 
@@ -59,7 +62,7 @@ func carregarEstado(caminhoEstado string) map[string]bool {
 	estado := make(map[string]bool)
 	arquivo, err := os.Open(caminhoEstado)
 	if err != nil {
-		return estado 
+		return estado // Se não existe, retorna vazio (primeira execução)
 	}
 	defer arquivo.Close()
 
@@ -166,7 +169,7 @@ func MotorRegex(dominio string) {
 	}
 
 	achados := 0
-	var relatorioTelegram []string
+	var relatorioTelegram []string // Buffer para não espamar a API
 
 	for _, arquivo := range arquivos {
 		if arquivo.IsDir() {
@@ -195,9 +198,9 @@ func MotorRegex(dominio string) {
 
 					textoLimpo := textoVazado
 					if nomeSegredo == "Esquema Custom (Deep Link)" {
-						textoLimpo = strings.Trim(textoLimpo, `"'`) 
+						textoLimpo = strings.Trim(textoLimpo, `"'`) // Arranca as aspas do começo e do fim
 					} else if nomeSegredo == "Vazamento JSONP" {
-						textoLimpo = strings.TrimLeft(textoLimpo, `?&`) 
+						textoLimpo = strings.TrimLeft(textoLimpo, `?&`) // Arranca o ? ou & do começo
 					}
 
 					textoLower := strings.ToLower(textoLimpo)
@@ -214,7 +217,7 @@ func MotorRegex(dominio string) {
 							strings.Contains(textoLower, "youtube") ||
 							strings.Contains(textoLower, "schema.org") ||
 							strings.Contains(textoLower, "w3.org") {
-							deveIgnorar = true 
+							deveIgnorar = true // Pula para a próxima string se for lixo
 						}
 					}
 
@@ -241,9 +244,9 @@ func MotorRegex(dominio string) {
 				}
 
 				if len(mapaUnicos) > 0 {
-					achados += len(mapaUnicos)
+					achados += len(mapaUnicos) // Soma os achados reais
 
-					fmt.Printf("%s - \033[31m[%sENCONTRADO]\033[0m Em: %s\n", momento(tempo), nomeSegredo, urlAlvo)
+					fmt.Printf("%s - \033[31m[%s ENCONTRADO]\033[0m Em: %s\n", momento(tempo), nomeSegredo, urlAlvo)
 
 					linhaAlerta := fmt.Sprintf("[OURO] *%s*\n*Alvo:* %s\n", nomeSegredo, urlAlvo)
 					for vazamento := range mapaUnicos {
@@ -326,7 +329,7 @@ func WorkerExtrator(canalTarefas <-chan TarefaRegex, wg *sync.WaitGroup) {
 				}
 				salvarAchadoRegex(tarefa.Dominio, resultado)
 
-				fmt.Printf("%s - \033[31m[%sENCONTRADO EM TEMPO REAL]\033[0m Em: %s\n", momento(tempo), nomeSegredo, tarefa.URL)
+				fmt.Printf("%s - \033[31m[%s ENCONTRADO EM TEMPO REAL]\033[0m Em: %s\n", momento(tempo), nomeSegredo, tarefa.URL)
 
 				linhaAlerta := fmt.Sprintf("[OURO] *%s*\n*Alvo:* %s\n", nomeSegredo, tarefa.URL)
 				for vazamento := range mapaUnicos {
@@ -339,14 +342,14 @@ func WorkerExtrator(canalTarefas <-chan TarefaRegex, wg *sync.WaitGroup) {
 		if len(relatorioTelegram) > 0 {
 			for _, alerta := range relatorioTelegram {
 				telegram(alerta)
-				time.Sleep(2 * time.Second) 
+				time.Sleep(2 * time.Second) // Evita block do Telegram
 			}
 		}
 		registrarEstado(caminhoEstado, tarefa.CaminhoLocal)
 	}
 }
 
-func momento(agora string) string {
+func momento(agora string) string { //Função para formato extenso com horário detalhado
 	agora = time.Now().Format("2006-01-02 15:04:05")
 	return agora
 }
