@@ -1,5 +1,8 @@
 # GoHunt
 
+<img width="641" height="226" alt="Captura de tela de 2026-10-20 11-20-42" src="https://github.com/user-attachments/assets/87495a07-9f34-432b-a7c3-580ce095c2a8" />
+
+
 GoHunt é uma ferramenta desenvolvida em Go para reconhecimento e triagem em programas de bug bounty e avaliações de segurança autorizadas. Seu objetivo é organizar a superfície descoberta, reduzir resultados repetidos e apoiar a validação manual com evidências rastreáveis.
 
 Desenvolvido por **h3rm1t0**, como projeto independente de pesquisa e engenharia de software aplicada à segurança.
