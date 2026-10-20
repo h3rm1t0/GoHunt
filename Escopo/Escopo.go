@@ -10,8 +10,8 @@ import (
 
 var tempo string
 
-func momento(agora string) string { 
-		agora = time.Now().Format("2006-01-02 15:04:05")
+func momento(agora string) string { //Função para formato extenso com horário detalhado
+	agora = time.Now().Format("2006-01-02 15:04:05")
 	return agora
 }
 
@@ -37,7 +37,7 @@ func CarregarEscopo(caminho string) *Escopo {
 	for scanner.Scan() {
 		linha := strings.TrimSpace(strings.ToLower(scanner.Text()))
 		if linha == "" || strings.HasPrefix(linha, "#") {
-			continue 
+			continue // Ignora linhas vazias e comentários
 		}
 
 		if strings.HasPrefix(linha, "*.") {
@@ -79,6 +79,8 @@ func (e *Escopo) GerarSementes() []string {
 	}
 
 	for _, curinga := range e.regras_curinga {
+		// Como salvamos o curinga com um ponto na frente (ex: ".tesla.com"),
+		// nós removemos esse ponto para ter a raiz limpa.
 		raiz := strings.TrimPrefix(curinga, ".")
 		sementes_unicas[raiz] = true
 	}
