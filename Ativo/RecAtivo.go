@@ -184,13 +184,13 @@ func recon_favicon(brutos []string, vivos []string) (error, []string) {
 
 func client_probber() *http.Client {
 	transporte := &http.Transport{
-		MaxIdleConns:          1000, 
-		MaxIdleConnsPerHost:   10,   
-		MaxConnsPerHost:       20,   
+		MaxIdleConns:          1000, // Permite muitas conexões globais paradas
+		MaxIdleConnsPerHost:   10,   // Limita conexões paradas por alvo
+		MaxConnsPerHost:       20,   // Respeita o RoE por IP (Ex: max 20 conexões no mesmo host)
 		IdleConnTimeout:       5 * time.Second,
 		TLSHandshakeTimeout:   3 * time.Second,
 		ResponseHeaderTimeout: 5 * time.Second,
-		DisableKeepAlives:     true, 
+		DisableKeepAlives:     true, // No Recon Ativo, é "bate e volta". Não segure a conexão!
 	}
 
 	return &http.Client{
@@ -200,6 +200,13 @@ func client_probber() *http.Client {
 }
 
 func Jitter(mindelay int, maxdelay int) {
+	if mindelay < 0 {
+		mindelay = 0
+	}
+	if maxdelay <= mindelay {
+		time.Sleep(time.Duration(mindelay) * time.Millisecond)
+		return
+	}
 	delta := maxdelay - mindelay
 	rand_time, err := rand.Int(rand.Reader, big.NewInt(int64(delta)))
 	if err != nil {
@@ -249,6 +256,22 @@ func probber_work(alvo string, results chan<- Laudo, client *http.Client, wappal
 		resultado.Tecnologia = append(resultado.Tecnologia, fingerprint)
 	}
 
+	// techsEncontradas := make(map[string]bool)
+
+	// for _, cookie := range resp.Cookies() {
+	// 	nome := strings.ToUpper(cookie.Name)
+	// 	if strings.Contains(nome, "PHPSESSID") {
+	// 		techsEncontradas["php"] = true
+	// 	} else if strings.Contains(nome, "JSESSIONID") {
+	// 		techsEncontradas["java"] = true
+	// 		techsEncontradas["spring"] = true
+	// 	} else if strings.Contains(nome, "ASPSESSIONID") {
+	// 		techsEncontradas["asp.net"] = true
+	// 	}
+	// }
+
+	// if
+
 	resultado.Tecnologia = append(resultado.Tecnologia, server)
 	resultado.Tecnologia = append(resultado.Tecnologia, resp.Header.Get("X-Powered-By"))
 
@@ -266,6 +289,13 @@ func http_probing(inputs []string, hoje string) (error, []string, []string) {
 		dir := filepath.Join("Alvos", input_limpo, "recon_ativo")
 		os.MkdirAll(dir, 0755)
 	}
+
+	//nome_arq := fmt.Sprintf("recon_passivo/%s_subdominios_limpo.txt", hoje)
+	//nome_arq = filepath.Join(input, nome_arq)
+	//arquivo, err := os.Open(nome_arq)
+	//if err != nil {
+	//	return fmt.Errorf(momento(tempo)+" - [ERRO] Falha ao abrir o arquivo %s para realizar o HTTP Probing ... ", nome_arq), "", ""
+	//}
 
 	fmt.Printf("%s", momento(tempo)+" - [INFO] Iniciando cliente HTTP e inicializando HTTP Probing ... \n")
 	client := client_probber()
@@ -317,6 +347,7 @@ func http_probing(inputs []string, hoje string) (error, []string, []string) {
 		url := strings.TrimPrefix(laudo.URL, "https://")
 		dir := filepath.Join("Alvos", url, "recon_ativo")
 
+		// CORREÇÃO 3: Permissão 0755 para pastas
 		err := os.MkdirAll(dir, 0755)
 		if err != nil {
 			fmt.Printf("%s - [ERRO] Falha ao criar diretório [%s] :\n %v ... \n", momento(tempo), dir, err)
@@ -331,7 +362,7 @@ func http_probing(inputs []string, hoje string) (error, []string, []string) {
 		bruto, err := os.Create(nome_lista_bruto)
 		if err != nil {
 			vivos.Close()
-			continue
+			continue // Trate o erro para não crachar a ferramenta
 		}
 
 		if laudo.StatusCode == 200 || laudo.StatusCode == 403 || laudo.StatusCode == 500 {
@@ -357,18 +388,22 @@ func http_probing(inputs []string, hoje string) (error, []string, []string) {
 	return nil, lista_nome_vivos, lista_dir_bruto
 }
 
-func momento(agora string) string { 
+func momento(agora string) string { //Função para formato extenso com horário detalhado
 	agora = time.Now().Format("2006-01-02 15:04:05")
 	return agora
 }
 
-func momento_2(agora string) string { 
+func momento_2(agora string) string { //Função para formato de tempo apenas com ano, mês e dia
 	agora = time.Now().Format("2006-01-02")
 	return agora
 }
 
 func IniciarAtivo(inputs []string, hoje string) (error, []string) {
 	fmt.Printf(momento(tempo)+" - [CHECK-POINT] Iniciando reconhecimento ativo nos [%d] alvos ... \n", len(inputs))
+	// for _, input := range inputs {
+	//  dir := filepath.Join("Alvos", input)
+	//  dir = filepath.Join(dir, "recon_ativo")
+	//  os.MkdirAll(dir, 0644)
 
 	// }
 	err, vivos, bruto := http_probing(inputs, hoje)
