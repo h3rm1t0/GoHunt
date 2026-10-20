@@ -27,8 +27,11 @@ import (
 )
 
 func telegram(mensagem string) {
-	var telegram_key string = "<INSIRA_SUA_CHAVE_API_DO_TELEGRAM_AQUI>"
-	var chat_id string = "<INSIRA_ID_DO_SEU_CHAT_TELEGRAM_AQUI>"
+	var telegram_key string = os.Getenv("TELEGRAM_BOT_TOKEN")
+	var chat_id string = os.Getenv("TELEGRAM_CHAT_ID")
+	if telegram_key == "" || chat_id == "" {
+		return
+	}
 	ritmo := time.NewTicker(time.Millisecond / time.Duration(2000))
 	defer ritmo.Stop()
 
@@ -133,7 +136,8 @@ func calibrarAlvo(alvo string, client *http.Client) AssinaturaFalsa {
 
 	assinatura.StatusCode = resp.StatusCode
 	assinatura.ContentLength = int64(len(bodyBytes))
-	assinatura.QtdPalavras = len(strings.Fields(bodyString)) 
+	assinatura.QtdPalavras = len(strings.Fields(bodyString)) // Conta quantas palavras tem na tela
+
 	return assinatura
 }
 
@@ -151,6 +155,8 @@ var (
 
 	reIdioma = regexp.MustCompile(`^(?i)(en|es|pt|fr|de|it|ru|ja|ko|zh|nl|tr|ar|id|[a-z]{2}[-_][a-z]{2})$`)
 
+	//reLixoHost = regexp.MustCompile(`(?i)(^|\.)(news|blog|careers|jobs|support|help|docs|press|events|investors)\.`)
+
 	reLixoPath = regexp.MustCompile(`(?i)(/careers/|/jobs/|/news/|/events/|/eu-dsa/|/legal/|/privacy|/cookie|/terms/|/assets/|/static/|/css/|/fonts/|/js/)`)
 
 	reOuro = regexp.MustCompile(`(?i)(\.js|\.json|\.xml|\.env|\.conf|\.yml|\.yaml|\.php|\.aspx|\.asp|\.txt|\.sql|\.zip|\.bak|\.swp|/api/|/v1/|/v2/|/v3/|/graphql|/swagger)`)
@@ -162,9 +168,9 @@ var (
 
 func classificarRisco(u *url.URL) string {
 	if reOuro.MatchString(u.Path) {
-		return "ALTO"
+		return "ALTO" // Extensões de código, dados estruturados ou APIs
 	}
-	return "INFORMATIVO"
+	return "INFORMATIVO" // Provavelmente HTML estático
 }
 
 func ehNumero(s string) bool {
@@ -226,13 +232,14 @@ func gerarAssinaturaURL(u *url.URL) string {
 }
 
 func higienizarURL(linha string) (*url.URL, error) {
+	// 1. A Guilhotina do Espaço: Tudo após o primeiro espaço literal é lixo (ex: datas, aspas HTML perdidas)
 	if idx := strings.Index(linha, " "); idx != -1 {
 		linha = linha[:idx]
 	}
 
 	linha = strings.ReplaceAll(linha, "\"", "")
 	linha = strings.ReplaceAll(linha, "'", "")
-	linha = strings.ReplaceAll(linha, "\\", "")
+	linha = strings.ReplaceAll(linha, "\\", "") // Barras invertidas quebram o roteamento web
 	linha = strings.ReplaceAll(linha, ">", "")
 	linha = strings.ReplaceAll(linha, "<", "")
 
@@ -385,7 +392,7 @@ func classificarSoft200(body []byte) bool {
 
 	for _, assinatura := range assinaturasOAuth {
 		if bytes.Contains(bodyLower, assinatura) {
-			return true 
+			return true // É uma página de login/OAuth!
 		}
 	}
 	return false
@@ -431,6 +438,8 @@ func AvaliarResposta(status int, body []byte, urlTeste string, risco string) {
 		if classificarSoft200(body) {
 			SalvarParaBypass(urlTeste)
 		} else if risco == "ALTO" {
+			// Só manda para o Extrator de Regex se for útil
+			// Arquivos HTML comuns não vão mais entupir seu disco ou seu Regex.
 			SalvarParaRegex(urlTeste, body)
 		}
 		return
@@ -447,11 +456,19 @@ func AvaliarResposta(status int, body []byte, urlTeste string, risco string) {
 	}
 
 	if status == 301 || status == 302 {
+		// Destino: Log de Infraestrutura / Análise Manual
 		return
 	}
 }
 
 func Jitter(mindelay int, maxdelay int) {
+	if mindelay < 0 {
+		mindelay = 0
+	}
+	if maxdelay <= mindelay {
+		time.Sleep(time.Duration(mindelay) * time.Millisecond)
+		return
+	}
 	delta := maxdelay - mindelay
 	rand_time, err := rand.Int(rand.Reader, big.NewInt(int64(delta)))
 	if err != nil {
@@ -478,6 +495,9 @@ func wayback_work(jobs <-chan string, wg *sync.WaitGroup, ritmoWayback *time.Tic
 			continue
 		}
 
+		//<-ritmoWayback.C
+
+		// O TIRO DE CALIBRAÇÃO
 		assinaturaLixo := calibrarAlvo(alvo.URL, client)
 
 		var rotasVivas []string
@@ -489,12 +509,15 @@ func wayback_work(jobs <-chan string, wg *sync.WaitGroup, ritmoWayback *time.Tic
 		concorrencia := 3
 		sem := make(chan struct{}, concorrencia)
 
+		// 1. Cria a esteira de URLs entre o Leitor e o Fuzzer
 		canalUrls := make(chan string, 1000)
 
+		// 2. Coloca o leitor do Wayback para rodar em paralelo
 		go func() {
 			Busca_Wayback_Stream(alvo.URL, canalUrls)
 			close(canalUrls)
 		}()
+
 		for caminho := range canalUrls {
 			wgFuzz.Add(1)
 			sem <- struct{}{}
@@ -541,8 +564,9 @@ func wayback_work(jobs <-chan string, wg *sync.WaitGroup, ritmoWayback *time.Tic
 					risco := classificarRisco(parsedUrl)
 					AvaliarResposta(statusAtual, bodyBytes, urlTeste, risco)
 
+					//mu.Lock()
 					switch statusAtual {
-					case 200, 403, 500: 
+					case 200, 403, 500: // Apenas mantém a lógica original de salvamento visual
 						resultadoTXT := fmt.Sprintf("[%d] [%s] %s (Tamanho: %d)", statusAtual, risco, urlTeste, tamanhoResposta)
 						rotasVivas = append(rotasVivas, resultadoTXT)
 						if risco == "ALTO" {
@@ -560,6 +584,7 @@ func wayback_work(jobs <-chan string, wg *sync.WaitGroup, ritmoWayback *time.Tic
 							fmt.Printf("\033[33m[*] REDIRECT:\033[0m [%d] %s -> %s\n", statusAtual, urlTeste, destinoRedirect)
 						}
 					}
+					//defer mu.Unlock()
 				}
 
 				atual := atomic.AddUint64(&urlsTestadas, 1)
@@ -636,7 +661,7 @@ func client_probber() *http.Client {
 
 	return &http.Client{
 		Transport: transporte,
-		Timeout:   10 * time.Second, 
+		Timeout:   10 * time.Second, // Timeout do probber deve ser rápido (ex: 10s)
 	}
 }
 
@@ -650,7 +675,7 @@ func client_wayback() *http.Client {
 
 	return &http.Client{
 		Transport: transporte,
-		Timeout:   60 * time.Second, 
+		Timeout:   60 * time.Second, // 60 segundos totais de pura paciência
 	}
 }
 
@@ -679,15 +704,17 @@ func momento(agora string) string {
 }
 
 func IniciarFuzzer(lista_arq_laudos []string) {
+	// Inicializa os canais
 	CanalExtrator = make(chan extractor.TarefaRegex, 5000)
 	CanalBypass = make(chan bypass.TarefaBypass, 500)
 
+	// Operários do Extrator (Regex)
 	for i := 0; i < 3; i++ {
 		WgExtrator.Add(1)
 		go extractor.WorkerExtrator(CanalExtrator, &WgExtrator)
 	}
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 5; i++ { 
 		WgBypass.Add(1)
 		go bypass.WorkerBypass(CanalBypass, &WgBypass, telegram)
 	}
