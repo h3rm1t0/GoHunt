@@ -178,6 +178,7 @@ func diff_ativo_work(arq_laudo_hoje string, results chan<- DiffAtivo, ontem time
 
 	hojeStr := time.Now().Format("2006-01-02")
 	ontemStr := ontem.Format("2006-01-02")
+
 	arq_laudo_ontem := strings.Replace(arq_laudo_hoje, hojeStr, ontemStr, 1)
 
 	laudosOntem := carregarLaudos(arq_laudo_ontem)
@@ -185,6 +186,7 @@ func diff_ativo_work(arq_laudo_hoje string, results chan<- DiffAtivo, ontem time
 		fmt.Printf("%s - [INFO] Não há laudo do dia anterior para diffing, encerrando diff do arquivo [%s]. Pulando ... \n", momento(), arq_laudo_hoje)
 		return
 	}
+	// 4. Montar o Mapa de Ontem para busca O(1)
 	mapaOntem := make(map[string]Laudo)
 	for _, l := range laudosOntem {
 		mapaOntem[l.URL] = l
@@ -230,7 +232,6 @@ func diff_ativo_work(arq_laudo_hoje string, results chan<- DiffAtivo, ontem time
 			mudancas = append(mudancas, alerta)
 		}
 
-		addTechs, remTechs := calcularDiffArrays(ontemAlvo.Tecnologia, hoje.Tecnologia)
 		if len(addTechs) > 0 || len(remTechs) > 0 {
 			alerta := "[TECNOLOGIAS]"
 			if len(addTechs) > 0 {
@@ -252,15 +253,18 @@ func diff_ativo_work(arq_laudo_hoje string, results chan<- DiffAtivo, ontem time
 
 	if len(diffsEncontrados) > 0 {
 		hojeStr := time.Now().Format("2006-01-02")
+
 		pastaDoAlvo := filepath.Dir(arq_laudo_hoje)
+
 		caminhoAlvoDiff := filepath.Join(pastaDoAlvo, "Diff", fmt.Sprintf("diff_ativo_%s.json", hojeStr))
+
 		salvarEmArquivo(caminhoAlvoDiff, diffsEncontrados)
 	}
 }
 
 func DiffingAtivo(lista_arq_laudos_hoje []string, lista_urls []string) int {
 	jobs := make(chan string, len(lista_arq_laudos_hoje))
-	results := make(chan DiffAtivo, 5000) 
+	results := make(chan DiffAtivo, 5000) // Buffer maior para o compilado global
 	workers := 5
 
 	hoje := time.Now()
@@ -286,11 +290,11 @@ func DiffingAtivo(lista_arq_laudos_hoje []string, lista_urls []string) int {
 			jobs <- arq
 		}
 	}
-	close(jobs) 
+	close(jobs) // Trava a esteira. Nenhum arquivo a mais vai entrar.
 
 	go func() {
-		wgWorkers.Wait() 
-		close(results)   
+		wgWorkers.Wait() // Espera os 5 operários terminarem todo o serviço
+		close(results)   // Fecha o canal de resultados para o laço abaixo poder finalizar
 	}()
 
 	var compiladoFinal []DiffAtivo
@@ -335,10 +339,11 @@ func carregarLaudos(caminhoArquivo string) []Laudo {
 		laudos = append(laudos, laudoAtual)
 	}
 
-	return laudos
+	return laudos // Retorna o exato []Laudo que a sua arquitetura exige!
 }
 
 func salvarEmArquivo(caminho string, dados interface{}) {
+	// 1. Descobre qual é a pasta e cria toda a árvore de diretórios se não existir
 	diretorio := filepath.Dir(caminho)
 	if err := os.MkdirAll(diretorio, 0755); err != nil {
 		fmt.Printf("%s - [ERRO] Não foi possível criar o diretório %s: %v\n", momento(), diretorio, err)
