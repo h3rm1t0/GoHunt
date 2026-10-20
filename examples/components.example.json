@@ -1,0 +1,15 @@
+[
+  {
+    "url": "https://app.example.test/cms/",
+    "product": "joomla",
+    "version": "4.2.7",
+    "evidence": "EXEMPLO: substituir por versão comprovada no inventário autorizado"
+  },
+  {
+    "url": "https://app.example.test/",
+    "name": "jquery",
+    "ecosystem": "npm",
+    "version": "3.4.1",
+    "evidence": "EXEMPLO: pacote e versão identificados no lockfile fornecido pelo responsável"
+  }
+]

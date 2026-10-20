@@ -1,0 +1,237 @@
+{
+  "schema": 2,
+  "reviewed": "2026-10-17",
+  "advisories": [
+    {
+      "id": "CVE-2023-23752",
+      "product": "joomla",
+      "introduced": "4.0.0",
+      "fixed": "4.2.8",
+      "reference": "https://developer.joomla.org/security-centre/894-20230201-core-improper-access-check-in-webservice-endpoints.html",
+      "conditions": "API webservice acessível e controle de acesso incorreto; versão declarada não comprova exposição.",
+      "verifier": "joomla-public-users-v1",
+      "requires": [
+        "joomla.webservices"
+      ]
+    },
+    {
+      "id": "CVE-2021-41773",
+      "product": "apache-httpd",
+      "introduced": "2.4.49",
+      "fixed": "2.4.50",
+      "reference": "https://httpd.apache.org/security/vulnerabilities_24.html#CVE-2021-41773",
+      "conditions": "Depende da configuração de acesso e aliases; execução de código ainda depende de CGI. Não há teste ativo neste catálogo."
+    },
+    {
+      "id": "CVE-2021-42013",
+      "product": "apache-httpd",
+      "introduced": "2.4.49",
+      "fixed": "2.4.51",
+      "reference": "https://httpd.apache.org/security/vulnerabilities_24.html#CVE-2021-42013",
+      "conditions": "Depende da configuração de acesso e aliases; execução de código ainda depende de CGI. Não há teste ativo neste catálogo."
+    },
+    {
+      "id": "CVE-2026-56846",
+      "product": "nodejs",
+      "ranges": [
+        {
+          "introduced": "22.0.0",
+          "fixed": "22.23.2"
+        },
+        {
+          "introduced": "24.0.0",
+          "fixed": "24.18.1"
+        }
+      ],
+      "reference": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+      "conditions": "HTTP/2 com retenção de cabeçalhos e limite de memória de sessão; correlação apenas.",
+      "requires": [
+        "node.http2-retained-headers"
+      ]
+    },
+    {
+      "id": "CVE-2026-56848",
+      "product": "nodejs",
+      "ranges": [
+        {
+          "introduced": "22.0.0",
+          "fixed": "22.23.2"
+        },
+        {
+          "introduced": "24.0.0",
+          "fixed": "24.18.1"
+        },
+        {
+          "introduced": "26.0.0",
+          "fixed": "26.5.1"
+        }
+      ],
+      "reference": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+      "conditions": "HTTP/2 com reentrada de envio; sem teste de corrupção de memória.",
+      "requires": [
+        "node.http2-reentrant-send"
+      ]
+    },
+    {
+      "id": "CVE-2026-58043",
+      "product": "nodejs",
+      "ranges": [
+        {
+          "introduced": "22.0.0",
+          "fixed": "22.23.2"
+        },
+        {
+          "introduced": "24.0.0",
+          "fixed": "24.18.1"
+        },
+        {
+          "introduced": "26.0.0",
+          "fixed": "26.5.1"
+        }
+      ],
+      "reference": "https://nodejs.org/en/blog/vulnerability/july-2026-security-releases",
+      "conditions": "Permission Model habilitado e permissões de caminhos afetadas.",
+      "requires": [
+        "node.permission-path-prefix"
+      ]
+    },
+    {
+      "id": "CVE-2026-15176",
+      "product": "nginx",
+      "ranges": [
+        {
+          "introduced": "0.1.29",
+          "fixed": "1.30.6"
+        },
+        {
+          "introduced": "1.31.0",
+          "fixed": "1.31.7"
+        }
+      ],
+      "reference": "https://nginx.org/en/security_advisories.html",
+      "conditions": "Uso conjunto de alias e rewrite; não executar teste de overflow.",
+      "requires": [
+        "nginx.alias-rewrite"
+      ]
+    },
+    {
+      "id": "CVE-2026-93479",
+      "product": "nginx",
+      "ranges": [
+        {
+          "introduced": "1.30.0",
+          "fixed": "1.30.6"
+        },
+        {
+          "introduced": "1.31.2",
+          "fixed": "1.31.7"
+        }
+      ],
+      "reference": "https://nginx.org/en/security_advisories.html",
+      "conditions": "Avaliação de scripts em configuração afetada.",
+      "requires": [
+        "nginx.script-evaluation"
+      ]
+    },
+    {
+      "id": "CVE-2026-95101",
+      "product": "nginx",
+      "ranges": [
+        {
+          "introduced": "1.25.0",
+          "fixed": "1.30.6"
+        },
+        {
+          "introduced": "1.31.0",
+          "fixed": "1.31.7"
+        }
+      ],
+      "reference": "https://nginx.org/en/security_advisories.html",
+      "conditions": "HTTP/3 habilitado; presença de nginx não comprova alcance.",
+      "requires": [
+        "nginx.http3"
+      ]
+    },
+    {
+      "id": "CVE-2026-42356",
+      "product": "apache-httpd",
+      "ranges": [
+        {
+          "introduced": "2.4.60",
+          "fixed": "2.4.69"
+        }
+      ],
+      "reference": "https://httpd.apache.org/security/vulnerabilities_24.html#CVE-2026-42356",
+      "conditions": "Redirecionamento interno de CGI para arquivo não CGI em diretório com CGI, sem extensão reconhecida.",
+      "requires": [
+        "apache.cgi-internal-redirect"
+      ]
+    },
+    {
+      "id": "CVE-2026-56449",
+      "product": "apache-httpd",
+      "ranges": [
+        {
+          "introduced": "2.4.68",
+          "fixed": "2.4.69"
+        }
+      ],
+      "reference": "https://httpd.apache.org/security/vulnerabilities_24.html#CVE-2026-56449",
+      "conditions": "mod_proxy_html com resposta HTML de backend não confiável.",
+      "requires": [
+        "apache.proxy-html-untrusted-backend"
+      ]
+    },
+    {
+      "id": "CVE-2026-57941",
+      "product": "apache-httpd",
+      "ranges": [
+        {
+          "introduced": "2.4.17",
+          "fixed": "2.4.69"
+        }
+      ],
+      "reference": "https://httpd.apache.org/security/vulnerabilities_24.html#CVE-2026-57941",
+      "conditions": "mod_http2 habilitado; sem teste de corrupção de memória.",
+      "requires": [
+        "apache.mod-http2"
+      ]
+    },
+    {
+      "id": "CVE-2026-75604",
+      "product": "nextjs",
+      "ranges": [
+        {
+          "introduced": "13.4.0",
+          "fixed": "15.5.24"
+        },
+        {
+          "introduced": "16.0.0",
+          "fixed": "16.3.3"
+        }
+      ],
+      "reference": "https://github.com/vercel/next.js/security/advisories/GHSA-p293-qw3h-jr36",
+      "conditions": "Windows, Pages Router e App Router juntos, sem Cache Components.",
+      "requires": [
+        "next.windows",
+        "next.pages-and-app",
+        "next.without-cache-components"
+      ]
+    },
+    {
+      "id": "CVE-2026-94486",
+      "product": "nextjs",
+      "ranges": [
+        {
+          "introduced": "16.0.0",
+          "fixed": "16.3.8"
+        }
+      ],
+      "reference": "https://nextjs.org/blog/september-2026-security-release",
+      "conditions": "Servidor next dev e endpoint MCP; produção não afetada. Limite inferior no GHSA-39w2-rjm5-chcv; correção no anúncio do fornecedor.",
+      "requires": [
+        "next.dev-mcp"
+      ]
+    }
+  ]
+}

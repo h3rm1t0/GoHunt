@@ -1,0 +1,2 @@
+{"version":1,"fingerprint":"9694799e6c60763fd9b0cfc5c6effbc64771eb58cb4eec60b53909da67cba0f9"}
+{"done":"0182ae716bae1f9c952355d897f11045699ff898bae0c3818dad594560932018","tasks":[{"kind":"page","url":"https://fixture.example.test/search?q=1","source":"scope"}],"records":[{"observed_at":"2026-10-20T13:22:13Z","kind":"form","url":"https://fixture.example.test/search?q=1","priority":3,"summary":"Fixture sintética","fields":[{"name":"q","type":"text"}],"evidence":{"in_scope":"true"}}]}
