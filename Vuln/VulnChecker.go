@@ -17,8 +17,11 @@ import (
 )
 
 func telegram(laudo_vuln Laudo_Vuln) {
-	var telegram_key string = "<INSIRA_SUA_CHAVE_API_DO_TELEGRAM_AQUI>"
-	var chat_id string = "<INSIRA_ID_DO_SEU_CHAT_TELEGRAM_AQUI>"
+	var telegram_key string = os.Getenv("TELEGRAM_BOT_TOKEN")
+	var chat_id string = os.Getenv("TELEGRAM_CHAT_ID")
+	if telegram_key == "" || chat_id == "" {
+		return
+	}
 	ritmo := time.NewTicker(time.Millisecond / time.Duration(2000))
 	defer ritmo.Stop()
 
@@ -101,15 +104,15 @@ type Arsenal_vulns struct {
 }
 
 type RegraMatcher struct {
-	Tipo     string   `json:"tipo"`     
-	Alvo     string   `json:"alvo"`     
-	Valores  []string `json:"valores"`
-	Condicao string   `json:"condicao"` 
-	Negativo bool     `json:"negativo"` 
+	Tipo     string   `json:"tipo"`     // "status", "word", "regex"
+	Alvo     string   `json:"alvo"`     // "body", "header", "all"
+	Valores  []string `json:"valores"`  // Os dados esperados
+	Condicao string   `json:"condicao"` // "AND", "OR" interno
+	Negativo bool     `json:"negativo"` // Se true, inverte a lógica
 }
 
 type ValidacaoPrecisa struct {
-	OperadorGlobal string         `json:"operador_global"`
+	OperadorGlobal string         `json:"operador_global"` // "AND", "OR" global
 	Regras         []RegraMatcher `json:"regras"`
 }
 
@@ -133,8 +136,8 @@ type Laudo_Vuln struct {
 }
 
 type Tiro struct {
-	Laudo Laudo         
-	Vuln  Arsenal_vulns
+	Laudo Laudo         // O seu alvo (URL/IP)
+	Vuln  Arsenal_vulns // A arma específica (Payload)
 }
 
 func validacao_vuln(body string, headersResp map[string][]string, status_code int, vuln Arsenal_vulns) bool {
@@ -271,6 +274,7 @@ func analise_vulns_work(jobs <-chan Tiro, results chan<- Laudo_Vuln, wg *sync.Wa
 				continue
 			}
 
+			// ... (Seu código original de setup de Headers) ...
 			for header, valor := range tiro.Vuln.Requisicao.Headers {
 				req.Header.Set(header, valor)
 			}
@@ -289,6 +293,7 @@ func analise_vulns_work(jobs <-chan Tiro, results chan<- Laudo_Vuln, wg *sync.Wa
 
 			bodyString := string(bodybytes)
 
+			// FILTRO ANTIRRUÍDO 1: WAFs Genéricos
 			if strings.Contains(bodyString, "Access Denied") || strings.Contains(bodyString, "Reference #") || strings.Contains(bodyString, "Cloudflare") {
 				continue
 			}
@@ -330,6 +335,7 @@ type AssinaturaSoft404 struct {
 
 func calibrarAlvo404(alvo string, client *http.Client) AssinaturaSoft404 {
 	var assinatura AssinaturaSoft404
+	// Gera uma string randômica (ex: /gohunt_fantasma_ab83c1)
 	req, _ := http.NewRequest("GET", fmt.Sprintf("%s/gohunt_fantasma_%d", alvo, time.Now().UnixNano()), nil)
 	resp, err := client.Do(req)
 	if err != nil {
@@ -388,6 +394,21 @@ func analise_vulns(lista_arq_laudo []string, inputs []string) []string {
 		wg.Add(1)
 		go analise_vulns_work(jobs, results, &wg, client, ticket.C, rastreador, mapa404)
 	}
+
+	// for _, arq_laudo := range lista_arq_laudo {
+	// 	conteudo, err := os.ReadFile(arq_laudo)
+	// 	if err != nil {
+	// 		fmt.Printf(momento(tempo)+" - [ERRO] Falha ao ler o arquivo [%s] para criar lista de laudos ... \n", arq_laudo)
+	// 		continue
+	// 	}
+	// 	var laudo_rec Laudo
+	// 	err = json.Unmarshal(conteudo, &laudo_rec)
+	// 	if err != nil {
+	// 		fmt.Printf("%s - [ERRO] Falha ao realizar o Unmarshal do arquivo [%v] ... \n", momento(tempo), laudo_rec)
+	// 		continue
+	// 	}
+	// 	lista_laudos = append(lista_laudos, laudo_rec)
+	// }
 
 	go func() {
 		for _, vuln := range arsenal_vulns {
@@ -458,12 +479,12 @@ func analise_vulns(lista_arq_laudo []string, inputs []string) []string {
 
 }
 
-func momento(agora string) string { 
+func momento(agora string) string { //Função para formato extenso com horário detalhado
 	agora = time.Now().Format("2006-01-02 15:04:05")
 	return agora
 }
 
-func momento_2(agora string) string { 
+func momento_2(agora string) string { //Função para formato de tempo apenas com ano, mês e dia
 	agora = time.Now().Format("2006-01-02")
 	return agora
 }
@@ -473,3 +494,24 @@ func IniciarVulnChecker(lista_arq_laudo []string, inputs []string) []string {
 
 	return nome_arqs_vulns
 }
+
+// Match and Eligible expose the existing matcher to the resumable pipeline.
+func Match(body string, headers map[string][]string, status int, template Arsenal_vulns) bool {
+	for _, rule := range template.Validacao.Regras {
+		if len(rule.Valores) == 0 {
+			return false
+		}
+		if rule.Tipo != "status" && rule.Tipo != "word" && rule.Tipo != "regex" {
+			return false
+		}
+		if rule.Tipo == "regex" {
+			for _, pattern := range rule.Valores {
+				if _, err := regexp.Compile(pattern); err != nil {
+					return false
+				}
+			}
+		}
+	}
+	return validacao_vuln(body, headers, status, template)
+}
+func Eligible(technologies, targets []string) bool { return alvo_elegível(technologies, targets) }
