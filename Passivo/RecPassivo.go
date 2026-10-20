@@ -11,7 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
+	"path/filepath" 
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -43,7 +43,7 @@ type CrtShResult struct {
 	IssuerCaID     int    `json:"issuer_ca_id"`
 	IssuerName     string `json:"issuer_name"`
 	CommonName     string `json:"common_name"`
-	NameValue      string `json:"name_value"` 
+	NameValue      string `json:"name_value"` // <--- subdomínios
 	ID             int64  `json:"id"`
 	EntryTimestamp string `json:"entry_timestamp"`
 	NotBefore      string `json:"not_before"`
@@ -90,7 +90,7 @@ func gerar_arquivo_bruto(input string, dir string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("%s - [ERRO] Falha ao criar o arquivo bruto", momento(tempo))
 	}
-	defer arquivo.Close()
+	defer arquivo.Close() // Fecha o arquivo automaticamente no final
 
 	fmt.Printf("%s - [INFO] Consultando crt.sh...\n", momento(tempo))
 	subs_crt := Busca_CRT(input)
@@ -108,6 +108,7 @@ func gerar_arquivo_bruto(input string, dir string) (string, error) {
 		return "", fmt.Errorf("%s - [ERRO FATAL] Nenhuma fonte retornou dados para o alvo", momento(tempo))
 	}
 
+	// Salva tudo no arquivo bruto (a deduplicação limpa isso depois)
 	for _, sub := range todas_fontes {
 		arquivo.WriteString(sub + "\n")
 	}
@@ -132,6 +133,7 @@ func Busca_OTX(dominio string) []string {
 		req, _ := http.NewRequest(http.MethodGet, urlOTX, nil)
 		req.Header.Set("User-Agent", "GoHunt-Recon/1.0")
 
+		// Insira sua Chave de API se disponível no sistema (Opcional, mas salva vidas)
 		if apiKey := os.Getenv("OTX_API_KEY"); apiKey != "" {
 			req.Header.Set("X-OTX-API-KEY", apiKey)
 		}
@@ -166,6 +168,13 @@ func Busca_OTX(dominio string) []string {
 }
 
 func Jitter(mindelay int, maxdelay int) {
+	if mindelay < 0 {
+		mindelay = 0
+	}
+	if maxdelay <= mindelay {
+		time.Sleep(time.Duration(mindelay) * time.Millisecond)
+		return
+	}
 	delta := maxdelay - mindelay
 	rand_time, err := rand.Int(rand.Reader, big.NewInt(int64(delta)))
 	if err != nil {
