@@ -3,53 +3,53 @@
 <img width="641" height="226" alt="Captura de tela de 2026-10-20 11-20-42" src="https://github.com/user-attachments/assets/87495a07-9f34-432b-a7c3-580ce095c2a8" />
 
 
-Uma ferramenta desenvolvida em Go para reconhecimento e triagem em programas de bug bounty e avaliações de segurança autorizadas. Seu objetivo é organizar a superfície descoberta, reduzir resultados repetidos e apoiar a validação manual com evidências rastreáveis.
+A tool developed in Go for reconnaissance and triage in bug bounty programs and authorized security assessments. Its purpose is to organize the discovered attack surface, reduce duplicate results, and support manual validation with traceable evidence.
 
-Desenvolvido por **h3rm1t0**, como projeto independente de pesquisa e engenharia de software aplicada à segurança.
+Developed by **h3rm1t0** as an independent research and software engineering project focused on security.
 
-## Funcionalidades
+## Features
 
-- **Escopo explícito:** domínios, subdomínios e URLs, com controle de autorização por hostname.
-- **Reconhecimento público:** integração com crt.sh, AlienVault OTX, Wayback Machine e Common Crawl.
-- **Mapeamento de páginas:** perfis reduzido, equilibrado e aprofundado, com limites de profundidade e páginas por host.
-- **Wordlists opcionais:** descoberta de subdomínios, diretórios e arquivos.
-- **Controle de requisições:** jitter configurável, timeouts, limite de resposta e tratamento de falhas.
-- **Tecnologias e versões:** identificação por fingerprints, cabeçalhos e marcas HTML, distinguindo indícios de versões declaradas.
-- **Superfície de entrada:** coleta de links, parâmetros, formulários e inputs, agrupando estruturas semelhantes.
-- **Deduplicação:** agrupamento de rotas históricas por parâmetros, preservação de amostras e comparação com históricos anteriores.
-- **Triagem de autorização:** controles negativos e comparação de respostas para reduzir falsos positivos em candidatos a bypass.
-- **Triagem de takeover:** coleta de evidências DNS/HTTP e indicação de URLs para validação posterior.
-- **Análise dirigida de CVEs:** correlação com catálogo revisado, pré-condições documentadas, referências e seleção explícita de verificadores ativos.
-- **Consulta opcional ao OSV:** análise de pacotes informados em inventário, com cache e conferência local dos resultados.
-- **Retomada de execução:** persistência da fila e dos resultados em JSONL, com recuperação após interrupções.
-- **Painel web local:** disponível antes do início da coleta, com filtros, prioridades, evidências, relações da superfície e árvore de caminhos por host.
-- **Revisão manual:** comentários, confirmação, descarte e acompanhamento dos pontos já analisados.
+- **Explicit scope definition:** Domains, subdomains, and URLs, with hostname-based authorization controls.
+- **Public reconnaissance:** Integration with crt.sh, AlienVault OTX, Wayback Machine, and Common Crawl.
+- **Web crawling:** Light, balanced, and deep crawling profiles, with configurable depth and page limits per host.
+- **Optional wordlists:** Discovery of subdomains, directories, and files.
+- **Request control:** Configurable jitter, timeouts, response size limits, and error handling.
+- **Technology and version detection:** Identification through fingerprints, HTTP headers, and HTML signatures, distinguishing potential indicators from explicitly declared versions.
+- **Input surface discovery:** Collection of links, parameters, forms, and input fields, grouping similar structures.
+- **Deduplication:** Grouping historical routes by parameters, preserving representative samples, and comparing results against previous scans.
+- **Authorization bypass triage:** Negative controls and response comparisons to reduce false positives among potential bypass candidates.
+- **Takeover triage:** Collection of DNS/HTTP evidence and identification of URLs requiring further validation.
+- **Targeted CVE analysis:** Correlation with a curated catalog, documented preconditions, references, and explicit selection of active vulnerability checkers.
+- **Optional OSV integration:** Analysis of packages provided in an inventory, with caching and local verification of results.
+- **Execution resumption:** Persistence of task queues and results in JSONL format, allowing recovery after interruptions.
+- **Local web dashboard:** Available before data collection begins, featuring filters, priorities, evidence, attack surface relationships, and a per-host URL path tree.
+- **Manual review:** Comments, confirmation, dismissal, and tracking of previously reviewed findings.
 
-## Organização dos resultados
+## Result Organization
 
-Os resultados são apresentados de **P1 a P5**, conforme os critérios internos de triagem. Essas prioridades orientam a investigação e não equivalem, por si só, a uma classificação definitiva de severidade.
+Results are categorized from **P1 to P5** according to internal triage criteria. These priorities guide investigation and do not, by themselves, represent definitive severity ratings.
 
-A avaliação distingue os seguintes estados:
+The assessment distinguishes the following states:
 
-- Produto observado.
-- Correlação possível.
-- Pré-condições atendidas.
-- Evidência reproduzida.
-- Confirmado manualmente.
-- Descartado.
-- Inconclusivo.
+- Observed product.
+- Potential correlation.
+- Preconditions satisfied.
+- Reproduced evidence.
+- Manually confirmed.
+- Dismissed.
+- Inconclusive.
 
-A árvore de caminhos organiza as URLs por domínio e subdomínio, reunindo parâmetros sem repetir ramos para cada valor GET. Níveis intermediários inferidos são identificados separadamente dos caminhos registrados.
+The URL path tree organizes URLs by domain and subdomain, consolidating parameters without creating duplicate branches for each GET parameter value. Inferred intermediate levels are identified separately from recorded paths.
 
-## Arquitetura e armazenamento
+## Architecture and Storage
 
-O projeto possui um único executável e módulos separados para coleta passiva e ativa, extração, fuzzing, autorização, vulnerabilidades, DNS, takeover, persistência e interface web.
+The project consists of a single executable with separate modules for passive and active reconnaissance, extraction, fuzzing, authorization testing, vulnerability analysis, DNS, takeover detection, persistence, and the web interface.
 
-O journal JSONL concentra tarefas e resultados. Revisões manuais e cache utilizam arquivos auxiliares. O painel funciona em loopback, sem exigir banco de dados ou servidor web externo.
+The JSONL journal stores tasks and results. Manual reviews and cached data are maintained in auxiliary files. The dashboard operates on the loopback interface without requiring a database or external web server.
 
-## Requisitos e compilação
+## Requirements and Build Instructions
 
-Requer **Linux e Go 1.24 ou superior**. Execute na pasta que contém `go.mod`:
+Requires **Linux and Go 1.24 or later**. Run the following commands from the directory containing `go.mod`:
 
 ```bash
 go mod download
@@ -58,7 +58,7 @@ go build -buildvcs=false -o bin/gohunt .
 ./bin/gohunt --help
 ```
 
-Exemplo de execução:
+Example usage:
 
 ```bash
 ./bin/gohunt --scope escopo.txt \
@@ -68,30 +68,30 @@ Exemplo de execução:
   --crawl-mode balanced
 ```
 
-O painel inicia, por padrão, em `http://127.0.0.1:8080`. Para continuar uma coleta interrompida, repita as opções de exploração e adicione `--resume`.
+By default, the dashboard starts at `http://127.0.0.1:8080`. To resume an interrupted scan, use the same scanning options and add `--resume`.
 
-## Limitações
+## Limitations
 
-O GoHunt está em desenvolvimento. A cobertura de CVEs e verificadores ativos é limitada; a presença de uma tecnologia ou versão compatível exige investigação adicional.
+GoHunt is under active development. CVE coverage and active vulnerability checkers are limited; detecting a potentially vulnerable technology or version requires further investigation.
 
-A ferramenta não executa JavaScript nem automatiza sessões autenticadas. A exploração de formulários GET exige habilitação explícita; formulários POST, senhas e uploads não são enviados automaticamente.
+The tool does not execute JavaScript or automate authenticated sessions. GET form crawling requires explicit activation; POST forms, passwords, and file uploads are not submitted automatically.
 
-Heurísticas podem produzir falsos positivos e falsos negativos. Candidatos a bypass e takeover exigem validação de impacto. Caminhos históricos ou inferidos não comprovam disponibilidade atual.
+Heuristic analysis may produce false positives and false negatives. Potential authorization bypasses and takeover vulnerabilities require impact validation. Historical or inferred paths do not establish current availability.
 
-A execução é sequencial, e consultas ao painel ainda percorrem o journal. Estados grandes podem apresentar maior custo de leitura. Tarefas interrompidas podem repetir requisições durante a retomada.
+Execution is sequential, and dashboard queries still traverse the journal. Large state files may result in increased read overhead. Interrupted tasks may cause requests to be repeated when execution resumes.
 
-## Uso ético e autorização
+## Ethical Use and Authorization
 
-O GoHunt foi desenvolvido para pesquisa, aprendizado e avaliações de segurança **expressamente autorizadas**.
+GoHunt was developed for research, education, and **explicitly authorized security assessments**.
 
-Utilize a ferramenta somente em ativos próprios ou mediante autorização válida do responsável. Em programas de bug bounty, respeite o escopo publicado, as técnicas permitidas, os limites de requisições, as restrições de automação e as regras de divulgação.
+Use this tool only on assets you own or for which you have obtained valid authorization from the responsible party. When participating in bug bounty programs, comply with the published scope, permitted testing techniques, request rate limits, automation restrictions, and disclosure policies.
 
-A configuração de escopo da ferramenta é um controle técnico; a autorização deve ser obtida e verificada pelo operador. Antes da execução, considere que as regras do GoHunt são por hostname e não implementam exclusões de caminhos ou portas.
+The tool's scope configuration is a technical control; authorization must be obtained and verified by the operator. Before execution, be aware that GoHunt enforces scope rules at the hostname level and does not support path- or port-based exclusions.
 
-O operador é responsável pelos alvos, parâmetros, wordlists e verificadores selecionados, bem como pelo tratamento dos dados coletados e pelo cumprimento da legislação e dos termos aplicáveis.
+The operator is responsible for the selected targets, parameters, wordlists, and vulnerability checkers, as well as the handling of collected data and compliance with applicable laws and terms of service.
 
-Evite interrupções de serviço, acesso desnecessário a dados pessoais, alteração de informações e qualquer atividade além da autorização concedida. Caso identifique exposição sensível, limite a coleta ao necessário para demonstrar o problema e siga o processo de divulgação responsável.
+Avoid service disruptions, unnecessary access to personal data, unauthorized modification of information, and any activities beyond the permissions granted. If sensitive information is exposed, limit data collection to what is strictly necessary to demonstrate the issue and follow responsible disclosure procedures.
 
-Resultados devem ser revisados antes de qualquer reporte. A ausência de achados não constitui garantia de segurança. Não publique credenciais, dados pessoais, evidências sensíveis ou resultados de terceiros sem autorização.
+All results must be manually reviewed before reporting. The absence of findings does not guarantee security. Do not publish credentials, personal data, sensitive evidence, or third-party assessment results without authorization.
 
-Este aviso não concede permissão para testar sistemas de terceiros. O autor não autoriza nem endossa usos ilegais ou fora do escopo permitido.
+This notice does not grant permission to test third-party systems. The author neither authorizes nor endorses illegal activities or any use outside the permitted scope.
